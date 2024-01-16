@@ -6,7 +6,10 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 services:
-  auth-service-url: http://localhost:8080
+  auth-service-url: http://localhost:8080/api/v1/demo
+
+server:
+  port: 8081
 
 
 

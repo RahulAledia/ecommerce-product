@@ -4,8 +4,12 @@ import com.aledia.product.dao.ProductDao;
 import com.aledia.product.entity.Products;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,21 +23,33 @@ public class ProductService {
     private final ProductDao productDao;
     private WebClient webClient;
 
-    private boolean validateToken(String token){
-        this.webClient = WebClient.create(authServiceUrl);
-        String validateTokenUrl = "/authenticate";
-        // Use WebClient to make the request to auth service
-        boolean isTokenValid = webClient.post()
-                .uri(validateTokenUrl)
-                .bodyValue(token)
-                .retrieve()
-                .bodyToMono(Boolean.class)
-                .block();  // Blocking operation, consider using reactive programming
+    public Mono<Boolean> validateToken(HttpHeaders headers) {
+        WebClient webClient = WebClient.create(authServiceUrl);
+        String validateTokenUrl = "";
 
-        return isTokenValid;
+        // Use WebClient to make the request to the auth service
+        return webClient.method(HttpMethod.GET)
+                .uri(validateTokenUrl)  // Adjust the URI as needed in your authorization service
+                .headers(httpHeaders -> httpHeaders.addAll(headers))
+               // .body(BodyInserters.fromValue(body))
+                .retrieve()
+                .toEntity(String.class)
+                .map(responseEntity -> {
+                    // Handle the response from the authorization service
+                    if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
     }
-    public List<Products> getAll() {
+
+    public List<Products> getAll(HttpHeaders headers) {
+        Mono<Boolean> booleanMono = validateToken(headers);
+        boolean result = booleanMono.block();
+        if(result)
         return productDao.findAll();
+        else return null;
     }
 
     public String save(List<Products> products){

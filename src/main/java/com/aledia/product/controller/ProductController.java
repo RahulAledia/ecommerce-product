@@ -1,14 +1,12 @@
 package com.aledia.product.controller;
 
 import com.aledia.product.entity.Products;
-import jdk.jfr.Label;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 
 import java.util.List;
@@ -21,8 +19,8 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("/getAll")
-    public ResponseEntity<List<Products>> getAllProducts(){
-        return ResponseEntity.ok(productService.getAll());
+    public ResponseEntity<List<Products>> getAllProducts(@RequestHeader HttpHeaders headers){
+        return ResponseEntity.ok(productService.getAll(headers));
     }
 
     @GetMapping("/get/{productId}")
@@ -40,5 +38,9 @@ public class ProductController {
         return ResponseEntity.ok(productService.delete(productId));
     }
 
+    @GetMapping("/interservicecommunication")
+    public ResponseEntity<Mono<Boolean>> interservicecommunication(@RequestHeader HttpHeaders headers){
+        return ResponseEntity.ok(productService.validateToken(headers));
+    }
 
 }
